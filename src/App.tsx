@@ -5,6 +5,7 @@ import TransmissionModes from './pages/TransmissionModes';
 import AsciiValues from './pages/AsciiValues';
 import LineCoding from './pages/LineCoding';
 import NyquistShannon from './pages/NyquistShannon';
+import SnrNoise from './pages/SnrNoise';
 import About from './pages/About';
 
 const Home = () => (
@@ -32,6 +33,7 @@ function App() {
           <Route path="ascii" element={<AsciiValues />} />
           <Route path="line-coding" element={<LineCoding />} />
           <Route path="nyquist" element={<NyquistShannon />} />
+          <Route path="snr" element={<SnrNoise />} />
           <Route path="about" element={<About />} />
           <Route path="*" element={<Placeholder />} />
         </Route>
