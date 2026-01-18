@@ -85,12 +85,12 @@ const Filters = () => {
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ color: 'var(--warning)', margin: '0 0 1rem 0' }}>Noisy Input Signal</h4>
-                        <Waveform data={noisy} color="var(--warning)" height="200px" />
+                        <Waveform data={noisy} color="var(--warning)" height="150px" />
                     </div>
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ color: 'var(--success)', margin: '0 0 1rem 0' }}>Filtered Output (Cleaned)</h4>
-                        <Waveform data={filtered} color="var(--success)" height="200px" />
+                        <Waveform data={filtered} color="var(--success)" height="150px" />
                     </div>
 
                 </div>

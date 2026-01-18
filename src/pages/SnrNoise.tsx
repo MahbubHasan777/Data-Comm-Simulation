@@ -101,23 +101,25 @@ const SnrNoise = () => {
                 {/* Visualizations */}
                 <div className="flex-col gap-md" style={{ flex: 2, minWidth: '400px' }}>
 
-                    <div style={{ position: 'relative' }}>
-                        <p style={{ position: 'absolute', top: 10, right: 10, fontSize: '0.8rem', color: 'var(--primary)', zIndex: 10 }}>Pure Signal</p>
-                        <Waveform data={pureSignal} color="var(--primary)" showGrid={false} />
+                    <div className="glass-panel" style={{ padding: '0.5rem 1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>Pure Signal</span>
+                        </div>
+                        <Waveform data={pureSignal} color="var(--primary)" showGrid={false} height="150px" />
                     </div>
 
-                    <div style={{ position: 'relative', marginTop: '-150px' }}>
-                        {/* Overlap effect attempt or just Stacked? Stacked is clearer for education. */}
+                    <div className="glass-panel" style={{ padding: '0.5rem 1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>Noise Only</span>
+                        </div>
+                        <Waveform data={noiseSignal} color="var(--accent)" showGrid={false} height="150px" />
                     </div>
 
-                    <div style={{ position: 'relative' }}>
-                        <p style={{ position: 'absolute', top: 10, right: 10, fontSize: '0.8rem', color: 'var(--accent)', zIndex: 10 }}>Noise Only</p>
-                        <Waveform data={noiseSignal} color="var(--accent)" showGrid={false} />
-                    </div>
-
-                    <div style={{ position: 'relative' }}>
-                        <p style={{ position: 'absolute', top: 10, right: 10, fontSize: '0.8rem', color: '#fff', zIndex: 10 }}>Combined (Signal + Noise)</p>
-                        <Waveform data={combinedSignal} color="#fff" />
+                    <div className="glass-panel" style={{ padding: '0.5rem 1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#fff' }}>Combined (Signal + Noise)</span>
+                        </div>
+                        <Waveform data={combinedSignal} color="#fff" height="150px" />
                     </div>
 
                 </div>
