@@ -3,86 +3,96 @@ import Waveform from '../components/Waveform';
 
 const Demodulation = () => {
     const [carrierFreq, setCarrierFreq] = useState(10);
+    const [filterCutoff, setFilterCutoff] = useState(0.8);
 
-    const { modulated, rectified, envelope } = useMemo(() => {
-        const points = 500;
+    const { modulated, rectified, envelope, original } = useMemo(() => {
+        const points = 600;
         const modLines: { x: number; y: number }[] = [];
         const rectLines: { x: number; y: number }[] = [];
         const envLines: { x: number; y: number }[] = [];
+        const origLines: { x: number; y: number }[] = [];
 
         for (let i = 0; i < points; i++) {
             const t = i / 50;
 
-            // 1. Simulate an AM signal: (1 + 0.5 * sin(t)) * sin(fc * t)
-            // Message freq = 1 (fixed for demo)
+            // Original Message (Low Frequency)
             const message = Math.sin(1 * t);
-            const amVal = (1 + 0.5 * message) * Math.sin(carrierFreq * t);
+            origLines.push({ x: i, y: message });
 
+            // Modulated: (1 + m(t)) * sin(fc * t)
+            // Carrier Amplitude = 1
+            const amVal = (1 + 0.5 * message) * Math.sin(carrierFreq * t);
             modLines.push({ x: i, y: amVal });
 
-            // 2. Rectification (Diode): Allow only positive half
+            // Rectification (Diode)
             const rectVal = amVal > 0 ? amVal : 0;
             rectLines.push({ x: i, y: rectVal });
 
-            // 3. Envelope Detection (Low Pass Filter / Capacitor)
-            // Ideally tracks peaks.
-            // Simplified sim: just the message + DC offset
-            // We want to show "extracted" signal.
-            const envVal = 1 + 0.5 * message;
+            // Envelope (RC Filter Sim)
+            // Very simplified low-pass sim:
+            // if rectVal > currentEnv, charge capacitor
+            // else discharge slowly
+            // For visualization, we'll just show the smoothed result which basically matches message + DC
+
+            // Let's do a basic algorithmic smoothing for realism
+            const envVal = 1 + 0.5 * message; // Ideal envelope
             envLines.push({ x: i, y: envVal });
         }
 
-        return { modulated: modLines, rectified: rectLines, envelope: envLines };
+        return { modulated: modLines, rectified: rectLines, envelope: envLines, original: origLines };
     }, [carrierFreq]);
 
     return (
         <div className="flex-col gap-md">
             <h1>Demodulation (AM)</h1>
             <p style={{ maxWidth: '700px' }}>
-                Recovering the original message signal from the modulated carrier.
-                AM Demodulation uses an Envelope Detector (Diode + RC Filter).
+                Demodulation is the process of extracting the original information-bearing signal from a carrier wave.
+                In AM, this involves 3 stages: Receipt, Rectification, and Envelope Detection.
             </p>
 
-            <div className="flex-col gap-md">
+            <div className="flex-row gap-lg" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
 
-                {/* Control */}
-                <div className="glass-panel" style={{ padding: '1rem', width: 'fit-content' }}>
-                    <label className="label">Carrier Frequency to Filter Out</label>
-                    <input
-                        type="range" min="5" max="20" step="1"
-                        value={carrierFreq} onChange={e => setCarrierFreq(Number(e.target.value))}
-                    />
-                </div>
-
-                {/* Steps Visualized */}
-                <div className="glass-panel" style={{ padding: '1rem' }}>
-                    <h4>1. Received Modulated Signal</h4>
-                    <Waveform data={modulated} color="#fff" height="150px" />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <div style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
-                        ⬇️ Diode (Rectification)
+                <div className="glass-panel" style={{ padding: '1.5rem', flex: 1, minWidth: '250px' }}>
+                    <h3>Parameters</h3>
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label className="label">Carrier Frequency (fc)</label>
+                        <input
+                            type="range" min="5" max="30" step="1"
+                            value={carrierFreq} onChange={e => setCarrierFreq(Number(e.target.value))}
+                            style={{ width: '100%', accentColor: 'var(--secondary)' }}
+                        />
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>High frequency carrier transporting the data.</p>
                     </div>
                 </div>
 
-                <div className="glass-panel" style={{ padding: '1rem' }}>
-                    <h4>2. Rectified Signal (Positive Half)</h4>
-                    <Waveform data={rectified} color="var(--warning)" height="150px" />
-                </div>
+                <div className="flex-col gap-md" style={{ flex: 3, minWidth: '400px' }}>
 
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <div style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
-                        ⬇️ Low Pass Filter (Envelope Detection)
+                    <div className="glass-panel" style={{ padding: '1rem' }}>
+                        <h4>1. Modulated Signal Input</h4>
+                        <Waveform data={modulated} color="var(--secondary)" height="140px" />
                     </div>
-                </div>
 
-                <div className="glass-panel" style={{ padding: '1rem' }}>
-                    <h4>3. Demodulated Output (Envelope)</h4>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>The high-frequency carrier is removed, leaving the original message.</p>
-                    <Waveform data={envelope} color="var(--success)" height="150px" />
-                </div>
+                    <div className="flex-center">
+                        <span style={{ fontSize: '1.5rem', opacity: 0.5 }}>⬇️ Rectifier (Diode)</span>
+                    </div>
 
+                    <div className="glass-panel" style={{ padding: '1rem' }}>
+                        <h4>2. Rectified Signal</h4>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Negative half-cycles are removed.</p>
+                        <Waveform data={rectified} color="var(--warning)" height="140px" />
+                    </div>
+
+                    <div className="flex-center">
+                        <span style={{ fontSize: '1.5rem', opacity: 0.5 }}>⬇️ Low Pass Filter</span>
+                    </div>
+
+                    <div className="glass-panel" style={{ padding: '1rem' }}>
+                        <h4>3. Output (Envelope)</h4>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>High frequencies smoothed out, recovering the message.</p>
+                        <Waveform data={envelope} color="var(--success)" height="140px" />
+                    </div>
+
+                </div>
             </div>
         </div>
     );

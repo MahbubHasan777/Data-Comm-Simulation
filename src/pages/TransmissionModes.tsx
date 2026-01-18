@@ -186,14 +186,22 @@ const TransmissionModes = () => {
                                         // Special styling for Start/Stop bits
                                         let bg = bit === '1' ? 'var(--primary)' : 'rgba(255,255,255,0.3)';
                                         let label = '';
+
+                                        // In Async mode: Index 0 is Start (0), Last is Stop (1)
                                         if (mode === 'asynchronous') {
-                                            if (i === 0) { bg = 'var(--warning)'; label = 'S'; } // Start
-                                            else if (i === bitsToAnimate.length - 1) { bg = 'var(--accent)'; label = 'E'; } // End
+                                            if (i === 0) {
+                                                bg = 'var(--warning)';
+                                                label = 'Start (0)';
+                                            }
+                                            else if (i === bitsToAnimate.length - 1) {
+                                                bg = 'var(--accent)';
+                                                label = 'Stop (1)';
+                                            }
                                         }
 
                                         return (
                                             <motion.div
-                                                key={`bit-${i}-${mode}`} // Force re-render on mode change
+                                                key={`bit-${i}-${mode}`}
                                                 initial={{ left: '10%', opacity: 0 }}
                                                 animate={{
                                                     left: ['10%', '90%'],
@@ -201,7 +209,7 @@ const TransmissionModes = () => {
                                                 }}
                                                 transition={{
                                                     duration: speed,
-                                                    delay: i * 0.6, // Slower sequence for clarity
+                                                    delay: i * 0.6,
                                                     ease: "linear"
                                                 }}
                                                 style={{
@@ -216,13 +224,27 @@ const TransmissionModes = () => {
                                                     justifyContent: 'center',
                                                     fontWeight: 'bold',
                                                     zIndex: 10,
-                                                    top: '-14px', // Center on line (32/2 - 4/2 = 14)
-                                                    boxShadow: '0 0 10px rgba(0,0,0,0.5)'
+                                                    top: '-14px',
+                                                    boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+                                                    border: label ? '2px solid #fff' : 'none'
                                                 }}
-                                                title={label ? (label === 'S' ? 'Start Bit' : 'Stop Bit') : 'Data Bit'}
+                                                title={label || 'Data Bit'}
                                             >
                                                 {bit}
-                                                {label && <span style={{ position: 'absolute', top: -15, fontSize: '10px', color: bg }}>{label}</span>}
+                                                {label && (
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        top: -25,
+                                                        fontSize: '10px',
+                                                        whiteSpace: 'nowrap',
+                                                        color: 'white',
+                                                        background: 'rgba(0,0,0,0.7)',
+                                                        padding: '2px 4px',
+                                                        borderRadius: '4px'
+                                                    }}>
+                                                        {label}
+                                                    </span>
+                                                )}
                                             </motion.div>
                                         );
                                     })}

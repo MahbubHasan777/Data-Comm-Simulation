@@ -1,203 +1,248 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Laptop, Smartphone, Tablet } from 'lucide-react';
+import { Laptop, Smartphone, Tablet, Plus, Trash2 } from 'lucide-react';
+
+interface Sender {
+    id: number;
+    name: string;
+    data: string;
+    color: string;
+    icon: any;
+}
 
 const Multiplexing = () => {
-    const [sender1, setSender1] = useState("Hi");
-    const [sender2, setSender2] = useState("Net");
-    const [sender3, setSender3] = useState("Sim");
+    const [senders, setSenders] = useState<Sender[]>([
+        { id: 1, name: 'Sender 1', data: 'Hi', color: 'var(--primary)', icon: <Laptop size={20} /> },
+        { id: 2, name: 'Sender 2', data: 'Net', color: 'var(--secondary)', icon: <Smartphone size={20} /> },
+        { id: 3, name: 'Sender 3', data: 'Sim', color: 'var(--accent)', icon: <Tablet size={20} /> }
+    ]);
 
     const [isSimulating, setIsSimulating] = useState(false);
-    const [muxOutput, setMuxOutput] = useState<any[]>([]); // Queue of packets on the channel
-    const [demux1, setDemux1] = useState("");
-    const [demux2, setDemux2] = useState("");
-    const [demux3, setDemux3] = useState("");
+    const [muxOutput, setMuxOutput] = useState<any[]>([]); // Queue on channel
+    const [demuxData, setDemuxData] = useState<{ [key: number]: string }>({ 1: '', 2: '', 3: '' }); // Dest buffers
     const [log, setLog] = useState<string[]>([]);
-
     const [speed, setSpeed] = useState(1);
+
+    const colors = ['var(--primary)', 'var(--secondary)', 'var(--accent)', 'var(--success)', 'var(--warning)'];
+
+    const addSender = () => {
+        if (senders.length >= 5) return;
+        const newId = (senders.length > 0 ? Math.max(...senders.map(s => s.id)) : 0) + 1;
+        setSenders([...senders, {
+            id: newId,
+            name: `Sender ${newId}`,
+            data: 'ABC',
+            color: colors[newId % colors.length],
+            icon: <Laptop size={20} />
+        }]);
+        setDemuxData(prev => ({ ...prev, [newId]: '' }));
+    };
+
+    const removeSender = (id: number) => {
+        setSenders(senders.filter(s => s.id !== id));
+        const newDemux = { ...demuxData };
+        delete newDemux[id];
+        setDemuxData(newDemux);
+    };
+
+    const updateSenderData = (id: number, val: string) => {
+        setSenders(senders.map(s => s.id === id ? { ...s, data: val } : s));
+    };
 
     const startSimulation = () => {
         if (isSimulating) return;
         setIsSimulating(true);
         setMuxOutput([]);
-        setDemux1(""); setDemux2(""); setDemux3("");
+        setDemuxData({});
         setLog(prev => ["Starting TDM Simulation...", ...prev]);
 
-        // Break inputs into chunks (chars)
-        const s1Chars = sender1.split('');
-        const s2Chars = sender2.split('');
-        const s3Chars = sender3.split('');
-        const maxLength = Math.max(s1Chars.length, s2Chars.length, s3Chars.length);
+        // Break inputs into chunks
+        // TDM: Round Robin. Byte by Byte (or char by char)
+        const charQueues: { [key: number]: string[] } = {};
+        let maxLength = 0;
 
-        const packets: { id: number, source: number, data: string, time: number }[] = [];
-
-        // TDM Logic: Cycle through sources
-        let timeSlot = 0;
-        for (let i = 0; i < maxLength; i++) {
-            if (s1Chars[i]) packets.push({ id: timeSlot++, source: 1, data: s1Chars[i], time: (i * 3) + 0 });
-            if (s2Chars[i]) packets.push({ id: timeSlot++, source: 2, data: s2Chars[i], time: (i * 3) + 1 });
-            if (s3Chars[i]) packets.push({ id: timeSlot++, source: 3, data: s3Chars[i], time: (i * 3) + 2 });
-        }
-
-        // Schedule Animations
-        packets.forEach((p, idx) => {
-            setTimeout(() => {
-                setMuxOutput(prev => [...prev, p]);
-                setLog(prev => [`Encoded: Source ${p.source} sent '${p.data}'`, ...prev.slice(0, 4)]);
-
-                // Arrive at Demux slightly later
-                setTimeout(() => {
-                    setMuxOutput(prev => prev.filter(item => item.id !== p.id)); // Remove from channel
-                    if (p.source === 1) setDemux1(prev => prev + p.data);
-                    if (p.source === 2) setDemux2(prev => prev + p.data);
-                    if (p.source === 3) setDemux3(prev => prev + p.data);
-                }, 1500 * speed); // Travel time
-
-            }, idx * 1000 * speed);
+        senders.forEach(s => {
+            charQueues[s.id] = s.data.split('');
+            if (charQueues[s.id].length > maxLength) maxLength = charQueues[s.id].length;
+            setDemuxData(prev => ({ ...prev, [s.id]: '' }));
         });
 
-        // End
+        const packets: { id: number, sourceId: number, data: string, time: number, color: string }[] = [];
+        let globalTime = 0;
+
+        // Create Schedule
+        for (let i = 0; i < maxLength; i++) {
+            // One round of sampling all senders
+            senders.forEach((s, idx) => {
+                if (charQueues[s.id][i]) {
+                    packets.push({
+                        id: globalTime++,
+                        sourceId: s.id,
+                        data: charQueues[s.id][i],
+                        time: globalTime,
+                        color: s.color
+                    });
+                }
+            });
+            // Gap between frames? Optional.
+        }
+
+        const packetDuration = 1000 * speed;
+
+        packets.forEach((p, idx) => {
+            setTimeout(() => {
+                // Enqueue on channel
+                setMuxOutput(prev => [...prev, p]);
+                setLog(prev => [`Mux: Encoded ${p.data} from Sender ${p.sourceId}`, ...prev.slice(0, 4)]);
+
+                // Travel and Arrive
+                setTimeout(() => {
+                    setMuxOutput(prev => prev.filter(item => item.id !== p.id));
+                    setDemuxData(prev => ({
+                        ...prev,
+                        [p.sourceId]: (prev[p.sourceId] || '') + p.data
+                    }));
+                }, 1500 * speed); // Travel time
+
+            }, idx * (800 * speed)); // Stagger slightly faster than full travel to show piling/flow
+        });
+
+        const totalTime = packets.length * (800 * speed) + (1500 * speed) + 500;
         setTimeout(() => {
             setIsSimulating(false);
             setLog(prev => ["Simulation Complete.", ...prev]);
-        }, packets.length * 1000 * speed + 2000);
+        }, totalTime);
     };
 
     return (
         <div className="flex-col gap-md">
-            <h1>Multiplexing (Endgame Sim)</h1>
+            <h1>Multiplexing (Endgame)</h1>
             <p style={{ maxWidth: '700px' }}>
-                Simulating Time Division Multiplexing (TDM). Multiple senders share a single transmission channel.
-                The visualizer shows how packets are interleaved and then reconstructed.
+                <strong>Endgame Network Simulation:</strong> Construct a Time Division Multiplexing (TDM) system.
+                Add/Remove senders, configure their ASCII payloads, and watch the Multiplexer interleave the data into a single stream.
             </p>
 
-            {/* Controls */}
-            <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="glass-panel" style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1 }}>
-                    <label className="label">Simulation Speed: {speed}x (Slower is better)</label>
-                    <input type="range" min="0.5" max="2" step="0.5" value={speed} onChange={e => setSpeed(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--primary)' }} />
+                    <label className="label">System Clock (Speed) {speed}x</label>
+                    <input type="range" min="0.5" max="3" step="0.5" value={speed} onChange={e => setSpeed(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--primary)' }} />
                 </div>
+                <button
+                    onClick={addSender}
+                    disabled={isSimulating || senders.length >= 5}
+                    style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid white' }}
+                >
+                    <Plus size={16} style={{ marginRight: '5px' }} /> Add Sender
+                </button>
                 <button
                     onClick={startSimulation}
                     disabled={isSimulating}
-                    style={{ background: isSimulating ? 'gray' : 'var(--success)', padding: '1rem 2rem', color: '#000', fontWeight: 'bold' }}
+                    style={{ background: isSimulating ? 'gray' : 'var(--success)', padding: '0.8rem 2rem', color: '#000', fontWeight: 'bold', marginLeft: 'auto' }}
                 >
-                    {isSimulating ? 'Simulating...' : 'Start Network Simulation'}
+                    {isSimulating ? 'Running Sim...' : 'Start Simulation'}
                 </button>
             </div>
 
-            {/* Network View */}
-            <div className="flex-row gap-lg" style={{ alignItems: 'stretch' }}>
+            <div className="flex-row gap-lg" style={{ alignItems: 'flex-start' }}>
 
-                {/* Senders */}
-                <div className="flex-col gap-lg" style={{ width: '250px' }}>
-                    <SenderCard id={1} icon={<Laptop size={24} />} color="var(--primary)" value={sender1} setValue={setSender1} active={isSimulating} />
-                    <SenderCard id={2} icon={<Smartphone size={24} />} color="var(--secondary)" value={sender2} setValue={setSender2} active={isSimulating} />
-                    <SenderCard id={3} icon={<Tablet size={24} />} color="var(--accent)" value={sender3} setValue={setSender3} active={isSimulating} />
+                {/* Send Side */}
+                <div className="flex-col gap-md" style={{ width: '300px' }}>
+                    <h3>Senders</h3>
+                    {senders.map(s => (
+                        <div key={s.id} className="glass-panel" style={{ padding: '1rem', borderLeft: `4px solid ${s.color}`, opacity: isSimulating ? 0.7 : 1 }}>
+                            <div className="flex-row" style={{ justifyContent: 'space-between' }}>
+                                <span style={{ color: s.color, fontWeight: 'bold', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                                    {s.icon} {s.name}
+                                </span>
+                                {!isSimulating && (
+                                    <button onClick={() => removeSender(s.id)} style={{ background: 'transparent', padding: 0 }}>
+                                        <Trash2 size={16} color="rgba(255,255,255,0.5)" />
+                                    </button>
+                                )}
+                            </div>
+                            <input
+                                type="text"
+                                value={s.data}
+                                disabled={isSimulating}
+                                onChange={(e) => updateSenderData(s.id, e.target.value)}
+                                style={{ width: '100%', marginTop: '0.5rem', background: 'rgba(0,0,0,0.3)', border: 'none', color: 'white', padding: '5px', borderRadius: '4px' }}
+                                maxLength={8}
+                            />
+                        </div>
+                    ))}
                 </div>
 
-                {/* MUX & Channel */}
-                <div className="flex-col" style={{ flex: 1, justifyContent: 'center', position: 'relative' }}>
+                {/* Middleware */}
+                <div className="flex-col" style={{ flex: 1, minHeight: '400px', position: 'relative', marginTop: '50px' }}>
 
-                    {/* The MUX Unit */}
-                    <div className="glass-panel flex-center" style={{ width: '60px', height: '100%', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)', position: 'absolute', left: 0, zIndex: 5 }}>
-                        <span style={{ writingMode: 'vertical-rl', letterSpacing: '2px', fontWeight: 'bold' }}>MULTIPLEXER</span>
+                    {/* Mux */}
+                    <div className="glass-panel flex-center" style={{ width: '60px', height: '300px', position: 'absolute', left: 0, top: 0, zIndex: 5, background: 'rgba(255,255,255,0.05)' }}>
+                        <span style={{ writingMode: 'vertical-rl', fontWeight: 'bold', letterSpacing: '4px' }}>MULTIPLEXER</span>
                     </div>
 
-                    {/* The Channel Wire */}
-                    <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.1)', position: 'relative', borderRadius: '5px', margin: '0 40px' }}>
+                    {/* Main Channel */}
+                    <div style={{ position: 'absolute', left: '60px', right: '60px', top: '140px', height: '20px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden', borderRadius: '10px' }}>
                         <AnimatePresence>
-                            {muxOutput.map((packet) => (
+                            {muxOutput.map((p) => (
                                 <motion.div
-                                    key={packet.id}
-                                    initial={{ left: '5%', opacity: 0 }}
-                                    animate={{ left: '90%', opacity: 1 }}
+                                    key={p.id}
+                                    initial={{ left: '0%', opacity: 0 }}
+                                    animate={{ left: '95%', opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 1.5 * speed, ease: "linear" }}
                                     style={{
                                         position: 'absolute',
-                                        top: '-15px',
+                                        top: '-5px', // Center
                                         width: '30px',
                                         height: '30px',
                                         borderRadius: '50%',
-                                        background: packet.source === 1 ? 'var(--primary)' : packet.source === 2 ? 'var(--secondary)' : 'var(--accent)',
+                                        background: p.color,
                                         color: '#000',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         fontWeight: 'bold',
-                                        boxShadow: '0 0 10px rgba(255,255,255,0.5)',
+                                        boxShadow: '0 0 15px rgba(255,255,255,0.5)',
                                         zIndex: 10
                                     }}
                                 >
-                                    {packet.data}
+                                    {p.data}
                                 </motion.div>
                             ))}
                         </AnimatePresence>
                     </div>
 
-                    {/* The DEMUX Unit */}
-                    <div className="glass-panel flex-center" style={{ width: '60px', height: '100%', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)', position: 'absolute', right: 0, zIndex: 5 }}>
-                        <span style={{ writingMode: 'vertical-rl', letterSpacing: '2px', fontWeight: 'bold' }}>DEMULTIPLEXER</span>
+                    {/* Demux */}
+                    <div className="glass-panel flex-center" style={{ width: '60px', height: '300px', position: 'absolute', right: 0, top: 0, zIndex: 5, background: 'rgba(255,255,255,0.05)' }}>
+                        <span style={{ writingMode: 'vertical-rl', fontWeight: 'bold', letterSpacing: '4px' }}>DEMULTIPLEXER</span>
                     </div>
 
                 </div>
 
-                {/* Receivers */}
-                <div className="flex-col gap-lg" style={{ width: '250px' }}>
-                    <ReceiverCard id={1} icon={<Laptop size={24} />} color="var(--primary)" value={demux1} />
-                    <ReceiverCard id={2} icon={<Smartphone size={24} />} color="var(--secondary)" value={demux2} />
-                    <ReceiverCard id={3} icon={<Tablet size={24} />} color="var(--accent)" value={demux3} />
+                {/* Receive Side */}
+                <div className="flex-col gap-md" style={{ width: '300px' }}>
+                    <h3>Receivers</h3>
+                    {senders.map(s => (
+                        <div key={s.id} className="glass-panel" style={{ padding: '1rem', borderRight: `4px solid ${s.color}`, minHeight: '88px' }}>
+                            <div style={{ color: s.color, fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                                Receiver {s.id}
+                            </div>
+                            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '0.5rem', borderRadius: '4px', minHeight: '34px' }}>
+                                {demuxData[s.id]}
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
             </div>
 
             <div className="glass-panel" style={{ padding: '1rem', maxHeight: '150px', overflowY: 'auto' }}>
-                <h4 style={{ margin: 0, color: 'var(--text-muted)' }}>System Log</h4>
+                <h4 style={{ margin: 0, color: 'var(--text-muted)' }}>Event Log</h4>
                 {log.map((l, i) => <div key={i} style={{ fontSize: '0.8rem', marginTop: '5px' }}>{l}</div>)}
             </div>
 
         </div>
     );
 };
-
-const SenderCard = ({ id, icon, color, value, setValue, active }: any) => (
-    <div className="glass-panel" style={{ padding: '1rem', borderLeft: `4px solid ${color}`, opacity: active ? 0.8 : 1 }}>
-        <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <div className="flex-row gap-sm" style={{ color }}>
-                {icon} <strong>Sender {id}</strong>
-            </div>
-        </div>
-        <input
-            type="text"
-            value={value}
-            onChange={e => setValue(e.target.value)}
-            disabled={active}
-            maxLength={10}
-            placeholder="Type..."
-            style={{ width: '100%', padding: '0.5rem', background: 'rgba(0,0,0,0.3)', border: 'none', color: 'white', borderRadius: '4px' }}
-        />
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '5px' }}>
-            {value.length * 8} bits
-        </div>
-        {/* Connection Line */}
-        <div style={{ position: 'absolute', right: '-20px', top: '50%', width: '20px', height: '2px', background: color }}></div>
-    </div>
-);
-
-const ReceiverCard = ({ id, icon, color, value }: any) => (
-    <div className="glass-panel" style={{ padding: '1rem', borderRight: `4px solid ${color}`, minHeight: '105px' }}>
-        <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <div className="flex-row gap-sm" style={{ color }}>
-                {icon} <strong>Receiver {id}</strong>
-            </div>
-        </div>
-        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '0.5rem', borderRadius: '4px', minHeight: '34px', color }}>
-            {value}
-        </div>
-        {/* Connection Line */}
-        <div style={{ position: 'absolute', left: '-20px', top: '50%', width: '20px', height: '2px', background: color }}></div>
-    </div>
-);
 
 export default Multiplexing;

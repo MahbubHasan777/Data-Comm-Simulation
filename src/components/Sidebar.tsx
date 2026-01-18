@@ -20,8 +20,8 @@ const modules = [
     { path: '/line-coding', name: '6. Line Coding', icon: Cpu },
     { path: '/calculations', name: '7. Bandwidth/Rates', icon: Calculator },
     { path: '/digital-analog', name: '8. Digital to Analog', icon: Radio },
-    { path: '/analog-mod', name: '9. Analog Modulation', icon: Signal },
-    { path: '/modulation', name: '10. Multiplexing', icon: Zap }, // Using Zap for now
+    { path: '/analog-modulation', name: '9. Analog Modulation', icon: Signal },
+    { path: '/multiplexing', name: '10. Multiplexing', icon: Zap }, // Using Zap for now
     { path: '/demodulation', name: '11. Demodulation', icon: Radio }, // Reusing Radio
     { path: '/filters', name: '12. Filters', icon: Waves }, // Reusing Waves
 ];

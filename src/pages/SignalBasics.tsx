@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import Waveform from '../components/Waveform';
-import { generateSineWave, generateSquareWave } from '../utils/signalGenerator';
+import { generateSineWave } from '../utils/signalGenerator';
 import { Waves, Binary } from 'lucide-react';
 
 const SignalBasics = () => {
