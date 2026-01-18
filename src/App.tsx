@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MainLayout from './layouts/MainLayout';
+import SignalBasics from './pages/SignalBasics';
+
+const Home = () => (
+  <div className="glass-panel" style={{ padding: '2rem' }}>
+    <h1>Welcome to Data Comm Sim</h1>
+    <p>Select a module from the sidebar to begin your journey into data communication.</p>
+  </div>
+);
+
+const Placeholder = () => (
+  <div className="glass-panel flex-center" style={{ padding: '3rem', flexDirection: 'column' }}>
+    <h2>🚧 Module Under Construction</h2>
+    <p>This simulation module is coming soon.</p>
+  </div>
+);
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path="signal-basics" element={<SignalBasics />} />
+          <Route path="*" element={<Placeholder />} />
+        </Route>
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
