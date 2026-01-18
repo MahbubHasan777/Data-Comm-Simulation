@@ -8,6 +8,7 @@ import NyquistShannon from './pages/NyquistShannon';
 import SnrNoise from './pages/SnrNoise';
 import Calculations from './pages/Calculations';
 import DigitalToAnalog from './pages/DigitalToAnalog';
+import AnalogModulation from './pages/AnalogModulation';
 import About from './pages/About';
 
 const Home = () => (
@@ -38,6 +39,7 @@ function App() {
           <Route path="snr" element={<SnrNoise />} />
           <Route path="calculations" element={<Calculations />} />
           <Route path="digital-analog" element={<DigitalToAnalog />} />
+          <Route path="analog-modulation" element={<AnalogModulation />} />
           <Route path="about" element={<About />} />
           <Route path="*" element={<Placeholder />} />
         </Route>
