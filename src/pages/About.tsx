@@ -1,4 +1,4 @@
-import { Github, Linkedin, User } from 'lucide-react';
+import { Github, Linkedin } from 'lucide-react';
 
 const About = () => {
     return (

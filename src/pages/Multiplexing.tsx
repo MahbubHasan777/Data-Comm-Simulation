@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Laptop, Smartphone, Tablet, Activity, Play, Settings, RefreshCw, ChevronsRight } from 'lucide-react';
+import { Laptop, Smartphone, Tablet, Activity, Play, RefreshCw } from 'lucide-react';
 import Waveform from '../components/Waveform';
 
 interface Sender {
@@ -17,7 +17,7 @@ interface Sender {
 const Multiplexing = () => {
     const [mode, setMode] = useState<'TDM' | 'FDM'>('TDM');
     const [senders, setSenders] = useState<Sender[]>([
-        { id: 1, name: 'S1', data: 'HELLO', equation: 'sin(t)', color: 'var(--primary)', icon: <Laptop size={18} />, slots: 1, bandwidth: 10 },
+        { id: 1, name: 'S1', data: 'HI,', equation: 'sin(t)', color: 'var(--primary)', icon: <Laptop size={18} />, slots: 1, bandwidth: 10 },
         { id: 2, name: 'S2', data: 'DATA', equation: 'sin(3t)', color: 'var(--secondary)', icon: <Smartphone size={18} />, slots: 1, bandwidth: 20 },
         { id: 3, name: 'S3', data: 'COMM', equation: 'sin(5t)', color: 'var(--accent)', icon: <Tablet size={18} />, slots: 1, bandwidth: 15 }
     ]);
@@ -454,6 +454,15 @@ const Multiplexing = () => {
                                         </div>
                                     </div>
 
+                                    {/* SEPARATOR */}
+                                    <div style={{ width: '100%', borderBottom: '1px dashed rgba(255,255,255,0.1)', margin: '10px 0' }} />
+
+                                    {/* TIME DOMAIN SIGNAL */}
+                                    <h4 style={{ textAlign: 'center', margin: 0, color: '#aaa', fontSize: '0.9rem' }}>Composite Signal (Time Domain)</h4>
+                                    <div style={{ width: '100%', height: '100px' }}>
+                                        <Waveform data={fdmData} color="#fff" height="100%" showGrid={false} />
+                                    </div>
+
                                 </div>
                             )}
                         </div>
@@ -478,7 +487,7 @@ const Multiplexing = () => {
                                     {mode === 'TDM' ? (
                                         <span>{receiverData[s.id as keyof typeof receiverData]}<span className="blink">_</span></span>
                                     ) : (
-                                        isSimulating ? <span className="blink">Receiving...</span> : 'Waiting...'
+                                        isSimulating ? <span className="blink">Receiving...</span> : 'Data...'
                                     )}
                                 </div>
                             </div>

@@ -3,9 +3,9 @@ import Waveform from '../components/Waveform';
 
 const Demodulation = () => {
     const [carrierFreq, setCarrierFreq] = useState(10);
-    const [filterCutoff, setFilterCutoff] = useState(0.8);
+    const [carrierFreq, setCarrierFreq] = useState(10);
 
-    const { modulated, rectified, envelope, original } = useMemo(() => {
+    const { modulated, rectified, envelope } = useMemo(() => {
         const points = 600;
         const modLines: { x: number; y: number }[] = [];
         const rectLines: { x: number; y: number }[] = [];
