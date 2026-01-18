@@ -50,7 +50,7 @@ const AnalogModulation = () => {
         }
 
         return { carrier: c, message: m, amSignal: am, fmSignal: fm, pmSignal: pm };
-    }, [cAmplitude, cFreq, mAmplitude, mFreq, modIndex]);
+    }, [cAmplitude, cFreq, mAmplitude, mFreq]);
 
     return (
         <div className="flex-col gap-md">
