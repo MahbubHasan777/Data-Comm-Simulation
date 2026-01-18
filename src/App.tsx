@@ -4,6 +4,7 @@ import SignalBasics from './pages/SignalBasics';
 import TransmissionModes from './pages/TransmissionModes';
 import AsciiValues from './pages/AsciiValues';
 import LineCoding from './pages/LineCoding';
+import NyquistShannon from './pages/NyquistShannon';
 
 const Home = () => (
   <div className="glass-panel" style={{ padding: '2rem' }}>
@@ -29,6 +30,7 @@ function App() {
           <Route path="transmission" element={<TransmissionModes />} />
           <Route path="ascii" element={<AsciiValues />} />
           <Route path="line-coding" element={<LineCoding />} />
+          <Route path="nyquist" element={<NyquistShannon />} />
           <Route path="*" element={<Placeholder />} />
         </Route>
       </Routes>
