@@ -1,0 +1,29 @@
+In our Data communication course we used to learn the topic mentioned below-
+
+1. What is Signal (Analog vs Digital)
+2. Transmission (SERIAL, PARALLEL, Synchronous, Asynchronous)
+3. ASCII Values
+4. Nyquist formula and shannon capacity
+5. SNR (Ratio and Lograrithm)
+6. Noise
+7. Line Coding (NRZ, RZ, AMI, MT3, Pseudometro, Manchester, Differential Manchester, Unipolar, Polar (NRZ and RZ))
+8. Calculating Bandwidth, Signal Rate, Bit Rate, Data Rate, Channel Capacity etc.
+9. Digital to Analog (ASK, PSK, FSK, QPSK, QAM)
+10. AM, FM, PM
+11. Modulation (FDM, WDM, TDM)
+12.Demodulation
+13. Low pass, Band pass
+
+
+
+We used to learn these things using matlab code. But the problem is I dont like the coding things and focus on how things are going by simulating by adding component in canvas and simulating signal and essential things. I should also manipulate the signal and see the output by tweaking the parameters and properties. This should very beginner friendly and easy to understand by which student can understand what is going on behind and focus on learning.
+
+
+Can you fullfill my dream by making it? 
+
+My GitHub: https://github.com/mahbubhasasn777
+My LinkedIn: https://www.linkedin.com/in/mahbub-hasan-634766378/
+
+Add an about me section. Take content from links.
+
+I am CSE student from American International University - Bangladesh. I am a passionate learner and always try to learn new things. I am also a passionate programmer and always try to make something new and innovative.
