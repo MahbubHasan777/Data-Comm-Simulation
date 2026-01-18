@@ -1,54 +1,65 @@
-# React + TypeScript + Vite
+# Data Communication Simulation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A comprehensive, interactive educational tool for visualizing and understanding core Data Communication and Networking concepts. Built with **React**, **TypeScript**, and **Vite**, this application offers real-time simulations of signal processing, modulation, and multiplexing techniques.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Core Modules
+1.  **Signal Basics**: Visualize Analog vs. Digital signals.
+2.  **Transmission Modes**: Simplex, Half-Duplex, Full-Duplex, and Synchronous/Asynchronous transmission.
+3.  **Transmission Media**: Guided (Twisted Pair, Coax, Fiber) vs. Unguided (Radio, Microwave, IR) media.
+4.  **Nyquist & Shannon**: Interactive calculator for theorem capacities.
+5.  **SNR & Noise**: Visualize the effect of noise and Signal-to-Noise Ratio on waveforms.
+6.  **Line Coding**: interactive graphs for NRZ-L, NRZ-I, Manchester, Differential Manchester, AMI, Pseudoternary, and MLT-3.
+7.  **Calculations**: Delay, Latency, and Bandwidth-Delay Product tools.
+8.  **Digital to Analog**: ASK, FSK, and PSK modulation visualizations.
+9.  **Analog Modulation**: AM, FM, and PM signal generation.
+10. **Multiplexing**:
+    *   **TDM**: Time Division Multiplexing with Pulse Stuffing, Multislot allocation, and variable Frame sizing.
+    *   **FDM**: Frequency Division Multiplexing with Guard Bands and Spectrum visualization.
+    *   **WDM**: Wavelength Division Multiplexing concepts.
+11. **Demodulation**: Interactive extraction of signals from carriers.
+12. **Filters**: Low-pass, High-pass, Band-pass, and Band-stop filter simulations.
 
-## Expanding the ESLint configuration
+### Key Highlights
+*   **Interactive Graphs**: Real-time waveform rendering using custom canvas-based components.
+*   **Dynamic Controls**: Tweak frequencies, amplitudes, bit rates, and more to see instant results.
+*   **Educational Visuals**: Flow animations (TDM frames), Spectrum Analyzers (FDM), and logical diagrams.
+*   **Modern UI**: Glassmorphism design with neon accents for an engaging experience.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Technology Stack
+*   **Frontend**: React (v18), TypeScript
+*   **Build Tool**: Vite
+*   **Styling**: Vanilla CSS (Variables, Glassmorphism), Lucide React (Icons)
+*   **Animation**: Framer Motion
+*   **Visualization**: Recharts (for some graphs), Custom SVG/Canvas implementation
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## 📦 Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/yourusername/data-communication-simulation.git
+    ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2.  **Navigate to project directory**:
+    ```bash
+    cd data-communication-simulation
+    ```
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+3.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+4.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+
+5.  Open your browser at `http://localhost:5173`.
+
+## 🤝 Contributing
+Contributions are welcome! Please fork the repository and submit a pull request with your improvements.
+
+## 📄 License
+This project is licensed under the MIT License.
