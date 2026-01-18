@@ -7,6 +7,7 @@ import LineCoding from './pages/LineCoding';
 import NyquistShannon from './pages/NyquistShannon';
 import SnrNoise from './pages/SnrNoise';
 import Calculations from './pages/Calculations';
+import DigitalToAnalog from './pages/DigitalToAnalog';
 import About from './pages/About';
 
 const Home = () => (
@@ -36,6 +37,7 @@ function App() {
           <Route path="nyquist" element={<NyquistShannon />} />
           <Route path="snr" element={<SnrNoise />} />
           <Route path="calculations" element={<Calculations />} />
+          <Route path="digital-analog" element={<DigitalToAnalog />} />
           <Route path="about" element={<About />} />
           <Route path="*" element={<Placeholder />} />
         </Route>

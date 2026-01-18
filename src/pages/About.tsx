@@ -20,7 +20,7 @@ const About = () => {
 
                 <div className="flex-row flex-center gap-md">
                     <a
-                        href="https://github.com/mahbubhasasn777"
+                        href="https://github.com/mahbubhasan777"
                         target="_blank"
                         rel="noreferrer"
                         style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '25px', color: 'white', textDecoration: 'none', transition: 'background 0.3s' }}

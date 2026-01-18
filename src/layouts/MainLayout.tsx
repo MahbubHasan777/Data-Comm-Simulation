@@ -11,7 +11,7 @@ const MainLayout = () => {
                     <h2>Data Comm Sim</h2>
                     <div className="flex-row gap-md">
                         <button onClick={() => navigate('/about')}>About Me</button>
-                        <button onClick={() => window.open('https://github.com/mahbubhasasn777', '_blank')}>Github</button>
+                        <button onClick={() => window.open('https://github.com/mahbubhasan777', '_blank')}>Github</button>
                     </div>
                 </header>
                 <div className="content-area">
