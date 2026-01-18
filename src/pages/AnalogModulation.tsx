@@ -120,24 +120,24 @@ const AnalogModulation = () => {
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ margin: '0 0 0.5rem 0' }}>Amplitude Modulation (AM)</h4>
-                        <div style={{ height: '120px' }}>
-                            <Waveform data={amSignal} color="#fff" showGrid={false} />
+                        <div style={{ height: '150px' }}>
+                            <Waveform data={amSignal} color="#fff" showGrid={false} height="100%" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Amplitude of carrier follows the amplitude of the message.</p>
                     </div>
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ margin: '0 0 0.5rem 0' }}>Frequency Modulation (FM)</h4>
-                        <div style={{ height: '120px' }}>
-                            <Waveform data={fmSignal} color="#fff" showGrid={false} />
+                        <div style={{ height: '150px' }}>
+                            <Waveform data={fmSignal} color="#fff" showGrid={false} height="100%" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Frequency of carrier changes based on message amplitude.</p>
                     </div>
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ margin: '0 0 0.5rem 0' }}>Phase Modulation (PM)</h4>
-                        <div style={{ height: '120px' }}>
-                            <Waveform data={pmSignal} color="#fff" showGrid={false} />
+                        <div style={{ height: '150px' }}>
+                            <Waveform data={pmSignal} color="#fff" showGrid={false} height="100%" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Phase of carrier changes based on message amplitude.</p>
                     </div>
