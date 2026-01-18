@@ -11,14 +11,15 @@ interface Sender {
     color: string;
     icon: any;
     slots: number; // Multislot allocation
+    bandwidth: number; // FDM Bandwidth in Hz
 }
 
 const Multiplexing = () => {
     const [mode, setMode] = useState<'TDM' | 'FDM'>('TDM');
     const [senders, setSenders] = useState<Sender[]>([
-        { id: 1, name: 'S1', data: 'HELLO', equation: 'sin(t)', color: 'var(--primary)', icon: <Laptop size={18} />, slots: 1 },
-        { id: 2, name: 'S2', data: 'DATA', equation: 'sin(3t)', color: 'var(--secondary)', icon: <Smartphone size={18} />, slots: 1 },
-        { id: 3, name: 'S3', data: 'COMM', equation: 'sin(5t)', color: 'var(--accent)', icon: <Tablet size={18} />, slots: 1 }
+        { id: 1, name: 'S1', data: 'HELLO', equation: 'sin(t)', color: 'var(--primary)', icon: <Laptop size={18} />, slots: 1, bandwidth: 10 },
+        { id: 2, name: 'S2', data: 'DATA', equation: 'sin(3t)', color: 'var(--secondary)', icon: <Smartphone size={18} />, slots: 1, bandwidth: 20 },
+        { id: 3, name: 'S3', data: 'COMM', equation: 'sin(5t)', color: 'var(--accent)', icon: <Tablet size={18} />, slots: 1, bandwidth: 15 }
     ]);
 
     // TDM Settings
@@ -26,20 +27,23 @@ const Multiplexing = () => {
     const [pulseStuffing, setPulseStuffing] = useState(true);
 
     // FDM Settings
-    const [guardBand, setGuardBand] = useState(1); // 0 to 5
-    const [minFreq, setMinFreq] = useState(0);
-    const [maxFreq, setMaxFreq] = useState(100);
+    const [guardBand, setGuardBand] = useState(5); // Hz
 
     // Safety check for equation evaluation
-    const evaluateEquation = (eq: string, t: number, senderIndex: number) => {
+    const evaluateEquation = (eq: string, t: number, freqShift: number) => {
         try {
-            // Apply Logic: Guard Band shifts frequency
-            // We simulate this by scaling 't' for each subsequent sender
-            // t_effective = t * (1 + (guardBand * 0.5 * senderIndex))
-            // This spreads the frequencies apart as Guard Band increases
-            const spreadFactor = 1 + (guardBand * 0.2 * senderIndex);
+            // Apply Logic: Shift the base frequency of the signal
+            // If the user inputs sin(t) [1 rad/s], and we shift by freqShift, 
+            // we effectively add energy at higher bands.
+            // For simple visualization, we just modulate the time base or add an offset if it was linear,
+            // but for 'sin(t)', changing 't' to 't * shift' scales frequency.
+            // A better approx for FDM visualization of arbitrary equations is complex,
+            // so we will just scale 't' relative to its allocated "center frequency".
 
-            // Improve parsing: handle implicit multiplication
+            // However, visually, the *Spectrum Bar* is the key requirement.
+            // The time-domain wave just needs to look "combined".
+            const spreadFactor = 1 + (freqShift * 0.1);
+
             let safeEq = eq
                 .replace(/(\d)(t)/g, '$1*$2')
                 .replace(/(\d)(\()/g, '$1*(')
@@ -47,7 +51,6 @@ const Multiplexing = () => {
                 .replace(/cos/g, 'Math.cos')
                 .replace(/pi/g, 'Math.PI');
 
-            // eslint-disable-next-line no-new-func
             return new Function('t', `return ${safeEq}`)(t * spreadFactor);
         } catch (e) {
             return 0;
@@ -55,7 +58,7 @@ const Multiplexing = () => {
     };
 
     const [isSimulating, setIsSimulating] = useState(false);
-    const [muxOutput, setMuxOutput] = useState<any[]>([]); // Frames on wire
+    const [muxOutput, setMuxOutput] = useState<any[]>([]);
     const [receiverData, setReceiverData] = useState<Record<number, string>>({ 1: '', 2: '', 3: '' });
 
     // FDM Data (Time Domain)
@@ -66,12 +69,40 @@ const Multiplexing = () => {
             const t = i / 10;
             let y = 0;
             senders.forEach((s, idx) => {
-                y += evaluateEquation(s.equation, t, idx);
+                // Shift each signal somewhat to represent different bands
+                y += evaluateEquation(s.equation, t, idx * guardBand);
             });
             data.push({ x: i, y });
         }
         return data;
-    }, [senders, guardBand]); // Re-calc when guardBand changes
+    }, [senders, guardBand]);
+
+    // Calculate Spectrum Layout
+    const spectrumLayout = useMemo(() => {
+        let currentFreq = 0;
+        const layout: any[] = [];
+        senders.forEach((s, idx) => {
+            layout.push({
+                type: 'signal',
+                sender: s,
+                start: currentFreq,
+                end: currentFreq + s.bandwidth,
+                width: s.bandwidth
+            });
+            currentFreq += s.bandwidth;
+
+            if (idx < senders.length - 1) {
+                layout.push({
+                    type: 'guard',
+                    start: currentFreq,
+                    end: currentFreq + guardBand,
+                    width: guardBand
+                });
+                currentFreq += guardBand;
+            }
+        });
+        return { blocks: layout, totalWidth: currentFreq };
+    }, [senders, guardBand]);
 
     const startSimulation = () => {
         if (isSimulating) return;
@@ -80,7 +111,6 @@ const Multiplexing = () => {
         setReceiverData({ 1: '', 2: '', 3: '' });
 
         if (mode === 'TDM') {
-            // Simulation Logic using Cursors
             let cursors = { 1: 0, 2: 0, 3: 0 };
             let active = true;
 
@@ -88,10 +118,8 @@ const Multiplexing = () => {
                 let frameHasData = false;
                 const frameContent: any[] = [];
 
-                // Build Frame according to Slot Allocations (Multislot)
                 senders.forEach(s => {
                     const slotsAllocated = s.slots;
-
                     for (let k = 0; k < slotsAllocated; k++) {
                         const start = cursors[s.id as keyof typeof cursors];
                         const chunk = s.data.substr(start, slotSize);
@@ -123,7 +151,7 @@ const Multiplexing = () => {
                                 }));
                             }
                         });
-                    }, 2000); // Travel time
+                    }, 2000);
                 } else {
                     clearInterval(interval);
                     setTimeout(() => setIsSimulating(false), 2000);
@@ -131,7 +159,6 @@ const Multiplexing = () => {
             }, 1200);
 
         } else {
-            // FDM
             setTimeout(() => setIsSimulating(false), 3000);
         }
     };
@@ -189,16 +216,8 @@ const Multiplexing = () => {
                         {mode === 'FDM' && (
                             <div className="flex-row gap-md" style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '8px', alignItems: 'flex-end' }}>
                                 <div className="flex-col gap-xs">
-                                    <label className="label" style={{ fontSize: '0.7rem' }}>Guard Band</label>
-                                    <input type="range" min="0" max="50" value={guardBand * 10} onChange={(e) => setGuardBand(parseInt(e.target.value) / 10)} style={{ width: '100px', accentColor: 'var(--success)' }} />
-                                </div>
-                                <div className="flex-col gap-xs">
-                                    <label className="label" style={{ fontSize: '0.7rem' }}>Min Freq</label>
-                                    <input type="number" value={minFreq} onChange={(e) => setMinFreq(Number(e.target.value))} style={{ width: '50px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '4px' }} />
-                                </div>
-                                <div className="flex-col gap-xs">
-                                    <label className="label" style={{ fontSize: '0.7rem' }}>Max Freq</label>
-                                    <input type="number" value={maxFreq} onChange={(e) => setMaxFreq(Number(e.target.value))} style={{ width: '50px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '4px' }} />
+                                    <label className="label" style={{ fontSize: '0.7rem' }}>Guard Band (Hz)</label>
+                                    <input type="number" min="0" max="50" value={guardBand} onChange={(e) => setGuardBand(parseInt(e.target.value))} style={{ width: '80px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '4px', padding: '2px' }} />
                                 </div>
                             </div>
                         )}
@@ -233,13 +252,22 @@ const Multiplexing = () => {
                             <div key={s.id} className="glass-panel" style={{ padding: '1rem', borderLeft: `4px solid ${s.color}`, transition: 'all 0.3s' }}>
                                 <div className="flex-row space-between" style={{ marginBottom: '0.5rem' }}>
                                     <span className="flex-row gap-sm" style={{ color: s.color, fontWeight: 'bold' }}>{s.icon} {s.name}</span>
-                                    {mode === 'TDM' && (
+                                    {mode === 'TDM' ? (
                                         <div className="flex-row gap-xs" title="Slots per frame (Multislot)" style={{ alignItems: 'center', marginTop: '4px' }}>
                                             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Slots:</span>
                                             <input
                                                 type="number" min="1" max="3" value={s.slots}
                                                 onChange={(e) => updateSender(s.id, 'slots', parseInt(e.target.value))}
                                                 style={{ width: '40px', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', textAlign: 'center', borderRadius: '4px', padding: '2px' }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="flex-row gap-xs" style={{ alignItems: 'center', marginTop: '4px' }}>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>BW(Hz):</span>
+                                            <input
+                                                type="number" min="1" value={s.bandwidth}
+                                                onChange={(e) => updateSender(s.id, 'bandwidth', parseInt(e.target.value))}
+                                                style={{ width: '50px', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', textAlign: 'center', borderRadius: '4px', padding: '2px' }}
                                             />
                                         </div>
                                     )}
@@ -257,7 +285,7 @@ const Multiplexing = () => {
                                     </div>
                                 ) : (
                                     <div className="flex-col gap-xs">
-                                        <label className="label">f(t) = (Guard Shift: +{Math.round(guardBand * 0.2 * idx * 100)}%)</label>
+                                        <label className="label">f(t) =</label>
                                         <input
                                             type="text"
                                             value={s.equation}
@@ -268,8 +296,7 @@ const Multiplexing = () => {
                                             <Waveform
                                                 data={Array.from({ length: 50 }, (_, i) => {
                                                     const t = i / 10;
-                                                    // Show individual waveform WITH shift
-                                                    return { x: i, y: evaluateEquation(s.equation, t, idx) };
+                                                    return { x: i, y: evaluateEquation(s.equation, t, idx * guardBand) };
                                                 })}
                                                 color={s.color}
                                                 showGrid={false} height="100%"
@@ -283,42 +310,55 @@ const Multiplexing = () => {
 
                     {/* NETWORK CORE */}
                     <div className="flex-col" style={{ flex: 1, position: 'relative' }}>
-                        <div className="glass-panel flex-center flex-col" style={{ padding: '1rem', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.2)', minHeight: '100px' }}>
+                        <div className="glass-panel flex-center flex-col" style={{ padding: '1rem', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.2)', minHeight: '130px' }}>
                             <h4 style={{ letterSpacing: '2px', color: 'var(--primary)', margin: 0 }}>MULTIPLEXER</h4>
-                            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px' }}>
-                                {mode === 'TDM' ? `Build Frame: ${senders.map(s => `${s.slots}x${s.name}`).join(' + ')}` : 'Frequency Allocation'}
+                            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '10px' }}>
+                                {mode === 'TDM' ? `Build Frame` : 'Spectrum Allocation'}
                             </div>
 
                             {/* FDM Spectrum Visualization */}
                             {mode === 'FDM' && (
-                                <div style={{ width: '100%' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#aaa', marginBottom: '2px' }}>
-                                        <span>{minFreq}Hz</span>
-                                        <span>{maxFreq}Hz</span>
+                                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+
+                                    {/* The Spectrum Bar */}
+                                    <div style={{ width: '100%', height: '50px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', display: 'flex', overflow: 'hidden', position: 'relative' }}>
+                                        {spectrumLayout.blocks.map((block: any, i: number) => (
+                                            <motion.div
+                                                key={i}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${(block.width / spectrumLayout.totalWidth) * 100}%` }}
+                                                style={{
+                                                    height: '100%',
+                                                    background: block.type === 'guard' ?
+                                                        'repeating-linear-gradient(45deg, #333, #333 5px, #444 5px, #444 10px)' :
+                                                        block.sender.color,
+                                                    display: 'flex', flexDirection: 'column',
+                                                    alignItems: 'center', justifyContent: 'center',
+                                                    color: block.type === 'guard' ? 'rgba(255,255,255,0.5)' : '#000',
+                                                    fontSize: '0.7rem', borderRight: '1px solid rgba(0,0,0,0.1)',
+                                                    position: 'relative'
+                                                }}
+                                                title={block.type === 'guard' ? 'Guard Band' : `Bandwidth: ${block.width}Hz`}
+                                            >
+                                                {block.type === 'signal' ?
+                                                    <>
+                                                        <strong>{block.sender.name}</strong>
+                                                        <span style={{ fontSize: '0.6rem' }}>{block.width}Hz</span>
+                                                    </>
+                                                    : <span style={{ fontSize: '0.6rem' }}>GB</span>
+                                                }
+
+                                                {/* Frequency Markers */}
+                                                <div style={{ position: 'absolute', bottom: '2px', left: '2px', fontSize: '0.55rem', opacity: 0.6 }}>{block.start}</div>
+                                                {i === spectrumLayout.blocks.length - 1 &&
+                                                    <div style={{ position: 'absolute', bottom: '2px', right: '2px', fontSize: '0.55rem', opacity: 0.6 }}>{block.end}</div>
+                                                }
+                                            </motion.div>
+                                        ))}
                                     </div>
-                                    <div style={{ width: '100%', height: '40px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', display: 'flex', overflow: 'hidden', position: 'relative' }}>
-                                        {/* Sender 1 */}
-                                        <div style={{ flex: 1, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#000' }}>S1</div>
-
-                                        {/* Guard Band */}
-                                        <motion.div
-                                            animate={{ width: `${guardBand * 20}px` }}
-                                            style={{ background: '#444', height: '100%', borderLeft: '1px dashed #666', borderRight: '1px dashed #666' }}
-                                        />
-
-                                        {/* Sender 2 */}
-                                        <div style={{ flex: 1, background: 'var(--secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#000' }}>S2</div>
-
-                                        {/* Guard Band */}
-                                        <motion.div
-                                            animate={{ width: `${guardBand * 20}px` }}
-                                            style={{ background: '#444', height: '100%', borderLeft: '1px dashed #666', borderRight: '1px dashed #666' }}
-                                        />
-
-                                        {/* Sender 3 */}
-                                        <div style={{ flex: 1, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#000' }}>S3</div>
+                                    <div style={{ textAlign: 'center', fontSize: '0.7rem', color: '#666' }}>
+                                        Total Bandwidth Used: {spectrumLayout.totalWidth} Hz
                                     </div>
-                                    <div style={{ textAlign: 'center', fontSize: '0.6rem', color: '#666' }}>Frequency Spectrum</div>
                                 </div>
                             )}
                         </div>
@@ -364,7 +404,7 @@ const Multiplexing = () => {
                                 <div style={{ width: '90%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                     <Waveform data={fdmData} color="#fff" height="200px" showGrid={false} />
                                     <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.8rem', color: '#aaa' }}>
-                                        Combined Signal (Time Domain)
+                                        Multiplexed Signal (Composite Waveform)
                                     </div>
                                 </div>
                             )}
@@ -374,7 +414,7 @@ const Multiplexing = () => {
                             <h4 style={{ letterSpacing: '2px', color: 'var(--secondary)', margin: 0 }}>DEMULTIPLEXER</h4>
                             {mode === 'FDM' && (
                                 <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginTop: '5px' }}>
-                                    Bandpass Filtering: {minFreq}Hz - {maxFreq}Hz
+                                    Separating carriers...
                                 </div>
                             )}
                         </div>
