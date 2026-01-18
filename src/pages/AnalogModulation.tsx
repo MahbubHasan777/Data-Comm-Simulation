@@ -111,9 +111,9 @@ const AnalogModulation = () => {
                             <span style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>Carrier Signal (High Freq)</span>
                         </div>
                         <div style={{ height: '100px', position: 'relative' }}>
-                            <Waveform data={message} color="var(--primary)" showGrid={false} />
+                            <Waveform data={message} color="var(--primary)" showGrid={false} height="100%" />
                             <div style={{ position: 'absolute', top: 0, width: '100%', height: '100%', opacity: 0.3 }}>
-                                <Waveform data={carrier} color="var(--secondary)" showGrid={false} />
+                                <Waveform data={carrier} color="var(--secondary)" showGrid={false} height="100%" />
                             </div>
                         </div>
                     </div>
