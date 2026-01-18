@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import SignalBasics from './pages/SignalBasics';
 import TransmissionModes from './pages/TransmissionModes';
+import AsciiValues from './pages/AsciiValues';
 
 const Home = () => (
   <div className="glass-panel" style={{ padding: '2rem' }}>
@@ -25,6 +26,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="signal-basics" element={<SignalBasics />} />
           <Route path="transmission" element={<TransmissionModes />} />
+          <Route path="ascii" element={<AsciiValues />} />
           <Route path="*" element={<Placeholder />} />
         </Route>
       </Routes>
