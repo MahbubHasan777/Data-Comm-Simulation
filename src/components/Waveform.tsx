@@ -7,9 +7,10 @@ interface WaveformProps {
     color?: string;
     name?: string;
     showGrid?: boolean;
+    height?: number | string;
 }
 
-const Waveform = ({ data, color = '#00f0ff', name = 'Signal', showGrid = true }: WaveformProps) => {
+const Waveform = ({ data, color = '#00f0ff', name = 'Signal', showGrid = true, height = '300px' }: WaveformProps) => {
     const [zoomLevel, setZoomLevel] = useState(1);
 
     // Calculate domain based on zoom level. 
@@ -28,8 +29,11 @@ const Waveform = ({ data, color = '#00f0ff', name = 'Signal', showGrid = true }:
 
     const visibleMaxX = minDataX + (range / zoomLevel);
 
+    // Filter data to only show visible range
+    const visibleData = data.filter(d => d.x >= minDataX && d.x <= visibleMaxX);
+
     return (
-        <div className="glass-panel" style={{ width: '100%', height: '300px', padding: '1rem', position: 'relative' }}>
+        <div className="glass-panel" style={{ width: '100%', height: height, padding: '1rem', position: 'relative' }}>
             <div style={{ position: 'absolute', right: 20, top: 10, zIndex: 10, display: 'flex', gap: '5px' }}>
                 <button
                     onClick={() => setZoomLevel(z => Math.max(1, z - 0.5))}
@@ -39,6 +43,7 @@ const Waveform = ({ data, color = '#00f0ff', name = 'Signal', showGrid = true }:
                 >
                     <ZoomOut size={16} />
                 </button>
+                <span style={{ fontSize: '0.8rem', padding: '4px', color: 'rgba(255,255,255,0.5)' }}>{zoomLevel}x</span>
                 <button
                     onClick={() => setZoomLevel(z => Math.min(10, z + 0.5))}
                     className="icon-btn"
@@ -50,7 +55,7 @@ const Waveform = ({ data, color = '#00f0ff', name = 'Signal', showGrid = true }:
             </div>
 
             <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data}>
+                <LineChart data={visibleData}>
                     {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />}
                     <XAxis
                         dataKey="x"

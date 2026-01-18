@@ -94,24 +94,24 @@ const DigitalToAnalog = () => {
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ color: 'var(--primary)', margin: '0 0 1rem 0' }}>ASK (Amplitude Shift Keying)</h4>
-                        <div style={{ height: '150px' }}>
-                            <Waveform data={askData} color="var(--primary)" showGrid={false} />
+                        <div style={{ height: '200px' }}>
+                            <Waveform data={askData} color="var(--primary)" showGrid={false} height="100%" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Amplitude changes based on bit value (1 = High A, 0 = 0).</p>
                     </div>
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ color: 'var(--secondary)', margin: '0 0 1rem 0' }}>FSK (Frequency Shift Keying)</h4>
-                        <div style={{ height: '150px' }}>
-                            <Waveform data={fskData} color="var(--secondary)" showGrid={false} />
+                        <div style={{ height: '200px' }}>
+                            <Waveform data={fskData} color="var(--secondary)" showGrid={false} height="100%" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Frequency changes based on bit value (1 = High f, 0 = Low f).</p>
                     </div>
 
                     <div className="glass-panel" style={{ padding: '1rem' }}>
                         <h4 style={{ color: 'var(--accent)', margin: '0 0 1rem 0' }}>PSK (Phase Shift Keying)</h4>
-                        <div style={{ height: '150px' }}>
-                            <Waveform data={pskData} color="var(--accent)" showGrid={false} />
+                        <div style={{ height: '200px' }}>
+                            <Waveform data={pskData} color="var(--accent)" showGrid={false} height="100%" />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Phase shifts 180° when bit value changes (or for specific bit).</p>
                     </div>

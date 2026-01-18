@@ -10,6 +10,8 @@ import Calculations from './pages/Calculations';
 import DigitalToAnalog from './pages/DigitalToAnalog';
 import AnalogModulation from './pages/AnalogModulation';
 import Multiplexing from './pages/Multiplexing';
+import Demodulation from './pages/Demodulation';
+import Filters from './pages/Filters';
 import About from './pages/About';
 
 const Home = () => (
@@ -42,6 +44,8 @@ function App() {
           <Route path="digital-analog" element={<DigitalToAnalog />} />
           <Route path="analog-modulation" element={<AnalogModulation />} />
           <Route path="multiplexing" element={<Multiplexing />} />
+          <Route path="demodulation" element={<Demodulation />} />
+          <Route path="filters" element={<Filters />} />
           <Route path="about" element={<About />} />
           <Route path="*" element={<Placeholder />} />
         </Route>
