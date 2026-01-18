@@ -401,11 +401,59 @@ const Multiplexing = () => {
                             )}
 
                             {mode === 'FDM' && (
-                                <div style={{ width: '90%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                    <Waveform data={fdmData} color="#fff" height="200px" showGrid={false} />
-                                    <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.8rem', color: '#aaa' }}>
-                                        Multiplexed Signal (Composite Waveform)
+                                <div style={{ width: '90%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '10px' }}>
+
+                                    {/* MAIN SPECTRUM VISUALIZATION */}
+                                    <h4 style={{ textAlign: 'center', margin: 0, color: '#aaa', fontSize: '0.9rem' }}>Frequency Spectrum Allocation</h4>
+
+                                    <div style={{ width: '100%', height: '80px', background: 'rgba(0,0,0,0.5)', borderRadius: '8px', display: 'flex', overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        {spectrumLayout.blocks.map((block: any, i: number) => (
+                                            <motion.div
+                                                key={i}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${(block.width / spectrumLayout.totalWidth) * 100}%` }}
+                                                style={{
+                                                    height: '100%',
+                                                    background: block.type === 'guard' ?
+                                                        'repeating-linear-gradient(45deg, #222, #222 10px, #333 10px, #333 20px)' :
+                                                        block.sender.color,
+                                                    display: 'flex', flexDirection: 'column',
+                                                    alignItems: 'center', justifyContent: 'center',
+                                                    color: block.type === 'guard' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.8)',
+                                                    fontSize: '0.8rem', borderRight: '1px solid rgba(255,255,255,0.1)',
+                                                    position: 'relative',
+                                                    fontWeight: 'bold'
+                                                }}
+                                                title={block.type === 'guard' ? 'Guard Band' : `Bandwidth: ${block.width}Hz`}
+                                            >
+                                                {block.type === 'signal' ?
+                                                    <>
+                                                        <div style={{ background: 'rgba(255,255,255,0.3)', padding: '2px 6px', borderRadius: '4px' }}>{block.sender.name}</div>
+                                                        <span style={{ fontSize: '0.7rem', marginTop: '2px' }}>{block.width}Hz</span>
+                                                    </>
+                                                    : <span style={{ fontSize: '0.6rem' }}>GUARD</span>
+                                                }
+
+                                                {/* Frequency Markers */}
+                                                <div style={{ position: 'absolute', bottom: '2px', left: '2px', fontSize: '0.6rem', color: '#fff', background: 'rgba(0,0,0,0.5)', padding: '1px 3px', borderRadius: '3px' }}>{block.start}</div>
+                                                {i === spectrumLayout.blocks.length - 1 &&
+                                                    <div style={{ position: 'absolute', bottom: '2px', right: '2px', fontSize: '0.6rem', color: '#fff', background: 'rgba(0,0,0,0.5)', padding: '1px 3px', borderRadius: '3px' }}>{block.end}</div>
+                                                }
+                                            </motion.div>
+                                        ))}
                                     </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', fontSize: '0.8rem', color: '#888' }}>
+                                        <div className="flex-row gap-xs items-center">
+                                            <div style={{ width: '12px', height: '12px', background: 'var(--primary)', borderRadius: '2px' }}></div>
+                                            <span>Signal</span>
+                                        </div>
+                                        <div className="flex-row gap-xs items-center">
+                                            <div style={{ width: '12px', height: '12px', background: 'repeating-linear-gradient(45deg, #222, #222 5px, #333 5px, #333 10px)', border: '1px solid #444', borderRadius: '2px' }}></div>
+                                            <span>Guard Band</span>
+                                        </div>
+                                    </div>
+
                                 </div>
                             )}
                         </div>
