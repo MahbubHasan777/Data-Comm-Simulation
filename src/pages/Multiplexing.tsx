@@ -100,7 +100,7 @@ const Multiplexing = () => {
                     }
                 });
 
-                if (!frameHasData && !pulseStuffing) {
+                if (!frameHasData) {
                     // Stop if no data and no stuffing forced
                     active = false;
                 }
