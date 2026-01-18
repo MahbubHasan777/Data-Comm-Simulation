@@ -3,31 +3,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Binary } from 'lucide-react';
 
 const TransmissionModes = () => {
-    const [mode, setMode] = useState<'serial' | 'parallel'>('serial');
+    const [mode, setMode] = useState<'serial' | 'parallel' | 'asynchronous'>('serial');
     const [data, setData] = useState("10110011"); // 8-bit example
     const [isTransmitting, setIsTransmitting] = useState(false);
     const [receivedData, setReceivedData] = useState<string[]>([]);
     const [speed, setSpeed] = useState(2); // Seconds to travel
+
+    const getFramedBits = () => {
+        if (mode === 'asynchronous') {
+            // Start bit (0) + Data + Stop bit (1)
+            return ['0', ...data.split(''), '1'];
+        }
+        return data.split('');
+    };
+
+    const bitsToAnimate = getFramedBits();
 
     const handleTransmit = () => {
         if (isTransmitting) return;
         setIsTransmitting(true);
         setReceivedData([]);
 
-        // Reset after animation
+        const bitCount = bitsToAnimate.length;
+        // Calculation for partial completion
+        const totalDuration = (mode === 'parallel' ? 0 : bitCount * 0.5) + speed + 0.5;
+
         setTimeout(() => {
             setIsTransmitting(false);
             setReceivedData(data.split(''));
-        }, (mode === 'serial' ? data.length * 500 : 0) + speed * 1000 + 500);
+        }, totalDuration * 1000);
     };
-
-    const bits = data.split('');
 
     return (
         <div className="flex-col gap-md">
             <h1>Transmission Modes</h1>
             <p style={{ maxWidth: '600px' }}>
-                Visualize the difference between Serial (one bit at a time) and Parallel (multiple bits simultaneously) transmission.
+                Visualize Serial (Synchronous/Asynchronous) vs Parallel transmission.
             </p>
 
             <div className="flex-row gap-md" style={{ flexWrap: 'wrap' }}>
@@ -37,16 +48,24 @@ const TransmissionModes = () => {
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label className="label">Transmission Mode</label>
-                        <div className="flex-row gap-md">
-                            <button
-                                onClick={() => setMode('serial')}
-                                style={{ background: mode === 'serial' ? 'var(--primary)' : 'rgba(255,255,255,0.1)', color: mode === 'serial' ? '#000' : '#fff', flex: 1 }}
-                            >
-                                Serial
-                            </button>
+                        <div className="flex-col gap-sm">
+                            <div className="flex-row gap-sm">
+                                <button
+                                    onClick={() => setMode('serial')}
+                                    style={{ background: mode === 'serial' ? 'var(--primary)' : 'rgba(255,255,255,0.1)', color: mode === 'serial' ? '#000' : '#fff', flex: 1 }}
+                                >
+                                    Serial (Sync)
+                                </button>
+                                <button
+                                    onClick={() => setMode('asynchronous')}
+                                    style={{ background: mode === 'asynchronous' ? 'var(--accent)' : 'rgba(255,255,255,0.1)', color: mode === 'asynchronous' ? '#fff' : '#fff', flex: 1 }}
+                                >
+                                    Asynchronous
+                                </button>
+                            </div>
                             <button
                                 onClick={() => setMode('parallel')}
-                                style={{ background: mode === 'parallel' ? 'var(--secondary)' : 'rgba(255,255,255,0.1)', color: mode === 'parallel' ? '#fff' : '#fff', flex: 1 }}
+                                style={{ background: mode === 'parallel' ? 'var(--secondary)' : 'rgba(255,255,255,0.1)', color: mode === 'parallel' ? '#fff' : '#fff', width: '100%' }}
                             >
                                 Parallel
                             </button>
@@ -78,94 +97,108 @@ const TransmissionModes = () => {
                 </div>
 
                 {/* Animation Canvas */}
-                <div className="glass-panel" style={{ flex: 2, minWidth: '500px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div className="glass-panel" style={{ flex: 2, minWidth: '500px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
 
                     {/* Sender & Receiver Labels */}
-                    <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center', padding: '0 2rem' }}>
                         <div className="flex-center flex-col">
-                            <div className="icon-box" style={{ width: 60, height: 60, background: 'var(--primary)', borderRadius: '50%', marginBottom: '10px' }}>
-                                <Binary color="#000" />
+                            <div className="flex-center" style={{ width: 80, height: 80, background: 'var(--primary)', borderRadius: '50%', marginBottom: '10px', boxShadow: '0 0 20px rgba(0,240,255,0.3)' }}>
+                                <Binary color="#000" size={32} />
                             </div>
-                            <span>SENDER</span>
+                            <span style={{ fontWeight: 'bold' }}>SENDER</span>
                         </div>
 
-                        <ArrowRight size={32} color="rgba(255,255,255,0.2)" />
+                        <ArrowRight size={48} color="rgba(255,255,255,0.1)" />
 
                         <div className="flex-center flex-col">
-                            <div className="icon-box" style={{ width: 60, height: 60, background: 'var(--secondary)', borderRadius: '50%', marginBottom: '10px' }}>
-                                <Binary color="#fff" />
+                            <div className="flex-center" style={{ width: 80, height: 80, background: 'var(--secondary)', borderRadius: '50%', marginBottom: '10px', boxShadow: '0 0 20px rgba(112,0,255,0.3)' }}>
+                                <Binary color="#fff" size={32} />
                             </div>
-                            <span>RECEIVER</span>
+                            <span style={{ fontWeight: 'bold' }}>RECEIVER</span>
                         </div>
                     </div>
 
                     {/* The Wire(s) */}
-                    <div style={{ position: 'relative', minHeight: '200px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem' }}>
+                    <div style={{ position: 'relative', minHeight: '150px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
-                        {/* Serial Mode Animation */}
-                        {mode === 'serial' && (
-                            <div className="flex-center" style={{ height: '100%', position: 'relative' }}>
-                                <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', position: 'absolute' }}></div>
+                        {/* Serial/Async Mode Animation */}
+                        {(mode === 'serial' || mode === 'asynchronous') && (
+                            <div className="flex-center" style={{ width: '100%', position: 'relative' }}>
+                                <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', position: 'absolute', borderRadius: '2px' }}></div>
                                 <AnimatePresence>
-                                    {isTransmitting && bits.map((bit, i) => (
-                                        <motion.div
-                                            key={`bit-${i}`}
-                                            initial={{ left: '0%', opacity: 0 }}
-                                            animate={{
-                                                left: ['0%', '100%'],
-                                                opacity: [1, 1, 0]
-                                            }}
-                                            transition={{
-                                                duration: speed,
-                                                delay: i * 0.5,
-                                                ease: "linear"
-                                            }}
-                                            style={{
-                                                position: 'absolute',
-                                                width: '30px',
-                                                height: '30px',
-                                                borderRadius: '50%',
-                                                background: bit === '1' ? 'var(--primary)' : 'rgba(255,255,255,0.3)',
-                                                color: '#000',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontWeight: 'bold',
-                                                zIndex: 10,
-                                                top: 'calc(50% - 15px)'
-                                            }}
-                                        >
-                                            {bit}
-                                        </motion.div>
-                                    ))}
+                                    {isTransmitting && bitsToAnimate.map((bit, i) => {
+                                        // Special styling for Start/Stop bits
+                                        let bg = bit === '1' ? 'var(--primary)' : 'rgba(255,255,255,0.3)';
+                                        let label = '';
+                                        if (mode === 'asynchronous') {
+                                            if (i === 0) { bg = 'var(--warning)'; label = 'S'; } // Start
+                                            else if (i === bitsToAnimate.length - 1) { bg = 'var(--accent)'; label = 'E'; } // End
+                                        }
+
+                                        return (
+                                            <motion.div
+                                                key={`bit-${i}-${mode}`} // Force re-render on mode change
+                                                initial={{ left: '10%', opacity: 0 }}
+                                                animate={{
+                                                    left: ['10%', '90%'],
+                                                    opacity: [1, 1, 0]
+                                                }}
+                                                transition={{
+                                                    duration: speed,
+                                                    delay: i * 0.6, // Slower sequence for clarity
+                                                    ease: "linear"
+                                                }}
+                                                style={{
+                                                    position: 'absolute',
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '50%',
+                                                    background: bg,
+                                                    color: '#000',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontWeight: 'bold',
+                                                    zIndex: 10,
+                                                    top: '-14px', // Center on line (32/2 - 4/2 = 14)
+                                                    boxShadow: '0 0 10px rgba(0,0,0,0.5)'
+                                                }}
+                                                title={label ? (label === 'S' ? 'Start Bit' : 'Stop Bit') : 'Data Bit'}
+                                            >
+                                                {bit}
+                                                {label && <span style={{ position: 'absolute', top: -15, fontSize: '10px', color: bg }}>{label}</span>}
+                                            </motion.div>
+                                        );
+                                    })}
                                 </AnimatePresence>
                             </div>
                         )}
 
                         {/* Parallel Mode Animation */}
                         {mode === 'parallel' && (
-                            <div className="flex-col" style={{ height: '100%', justifyContent: 'space-between', position: 'relative' }}>
-                                {bits.map((bit, i) => (
-                                    <div key={i} style={{ position: 'relative', height: '20px', display: 'flex', alignItems: 'center' }}>
+                            <div className="flex-col" style={{ width: '100%', gap: '15px' }}>
+                                {bitsToAnimate.map((bit, i) => (
+                                    <div key={i} style={{ position: 'relative', height: '10px', display: 'flex', alignItems: 'center' }}>
                                         <div style={{ width: '100%', height: '2px', background: 'rgba(255,255,255,0.1)', position: 'absolute' }}></div>
                                         <AnimatePresence>
                                             {isTransmitting && (
                                                 <motion.div
-                                                    initial={{ left: '0%', opacity: 1 }}
-                                                    animate={{ left: '100%', opacity: 0 }}
+                                                    initial={{ left: '10%', opacity: 1 }}
+                                                    animate={{ left: '90%', opacity: 0 }}
                                                     transition={{ duration: speed, ease: "linear" }}
                                                     style={{
                                                         position: 'absolute',
-                                                        width: '16px',
-                                                        height: '16px',
+                                                        width: '14px',
+                                                        height: '14px',
                                                         borderRadius: '50%',
                                                         background: bit === '1' ? 'var(--secondary)' : 'rgba(255,255,255,0.3)',
-                                                        fontSize: '10px',
+                                                        fontSize: '9px',
                                                         color: '#fff',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        zIndex: 10
+                                                        zIndex: 10,
+                                                        top: '-6px'
                                                     }}
                                                 >
                                                     {bit}
@@ -177,35 +210,42 @@ const TransmissionModes = () => {
                             </div>
                         )}
 
-                    </div>
+                        {!isTransmitting && (
+                            <div className="flex-center" style={{ position: 'absolute', width: '100%', height: '100%', pointerEvents: 'none' }}>
+                                <p style={{ color: 'rgba(255,255,255,0.1)', fontSize: '1.5rem', fontWeight: 'bold' }}>IDLE LINE</p>
+                            </div>
+                        )}
 
-                    <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                        {mode === 'serial' ? 'Waiting 0.5s between each bit...' : 'All bits sent simultaneously!'}
                     </div>
 
                     {/* Receiver Display */}
-                    <div className="glass-panel text-center" style={{ minHeight: '60px', padding: '1rem', marginTop: '1rem' }}>
-                        <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Received Data</h4>
-                        <div style={{ letterSpacing: '4px', fontFamily: 'monospace', fontSize: '1.2rem', minHeight: '1.5rem', color: 'var(--success)' }}>
-                            {receivedData.length > 0 ? receivedData.join('') : (isTransmitting ? 'receiving...' : 'Waiting for data')}
+                    <div className="glass-panel text-center" style={{ minHeight: '80px', padding: '1rem' }}>
+                        <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Received Data Buffer</h4>
+                        <div style={{ letterSpacing: '8px', fontFamily: 'monospace', fontSize: '1.5rem', minHeight: '2rem', color: 'var(--success)' }}>
+                            {receivedData.length > 0 ? receivedData.join('') : (isTransmitting ? <span className="blink">Receiving...</span> : 'Waiting...')}
                         </div>
+                    </div>
 
-                        <div style={{ marginTop: '1.5rem', textAlign: 'left' }}>
-                            <label className="label" style={{ fontSize: '0.8rem' }}>Transmission Speed: {speed}s</label>
-                            <input
-                                type="range"
-                                min="0.5"
-                                max="5"
-                                step="0.5"
-                                value={speed}
-                                onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                                style={{ width: '100%', accentColor: 'var(--primary)' }}
-                            />
-                        </div>
+                    <div style={{ textAlign: 'left', padding: '0 1rem' }}>
+                        <label className="label" style={{ fontSize: '0.8rem' }}>Animation Duration (s): {speed}s</label>
+                        <input
+                            type="range"
+                            min="1"
+                            max="5"
+                            step="0.5"
+                            value={speed}
+                            onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                            style={{ width: '100%', accentColor: 'var(--primary)' }}
+                        />
                     </div>
 
                 </div>
             </div>
+
+            <style>{`
+                .blink { animation: blink 1s infinite; }
+                @keyframes blink { 50% { opacity: 0.5; } }
+            `}</style>
         </div>
     );
 };
