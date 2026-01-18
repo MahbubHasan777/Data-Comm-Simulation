@@ -3,7 +3,7 @@ import Waveform from '../components/Waveform';
 
 const Demodulation = () => {
     const [carrierFreq, setCarrierFreq] = useState(10);
-    const [carrierFreq, setCarrierFreq] = useState(10);
+
 
     const { modulated, rectified, envelope } = useMemo(() => {
         const points = 600;
