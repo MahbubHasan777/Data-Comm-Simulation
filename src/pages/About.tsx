@@ -6,9 +6,9 @@ const About = () => {
             <div className="glass-panel" style={{ padding: '3rem', maxWidth: '600px', width: '100%', textAlign: 'center' }}>
                 <div
                     className="flex-center"
-                    style={{ width: '100px', height: '100px', background: 'var(--primary)', borderRadius: '50%', margin: '0 auto 1.5rem auto' }}
+                    style={{ width: '120px', height: '120px', borderRadius: '50%', margin: '0 auto 1.5rem auto', overflow: 'hidden', border: '3px solid var(--primary)', boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)' }}
                 >
-                    <User size={48} color="#000" />
+                    <img src="/profile.jpg" alt="Mahbub Hasan" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
 
                 <h1 style={{ marginBottom: '0.5rem' }}>Mahbub Hasan</h1>
